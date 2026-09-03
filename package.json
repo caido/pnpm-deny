@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "lint": "bash scripts/lint.sh",
+    "lint-prod": "bash scripts/lint-prod.sh"
+  },
+  "devDependencies": {
+    "@caido/eslint-config": "0.10.0",
+    "eslint": "9.28.0",
+    "knip": "5.60.2",
+    "typescript": "6.0.3"
+  }
+}

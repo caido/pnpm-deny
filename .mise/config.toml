@@ -1,0 +1,10 @@
+[plugins]
+toolshed = "https://github.com/caido/mise-toolshed"
+
+[tools]
+node = "24.16.0"
+pnpm = "11.25.0"
+"toolshed:get-skills" = "latest"
+
+[settings]
+lockfile = true
