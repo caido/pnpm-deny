@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["vitest.config.ts", "eslint.config.ts"],
+      "project": ["vitest.config.ts", "eslint.config.ts"]
+    },
+    "packages/*": {
+      "entry": ["src/index.ts", "src/cli.ts", "bin/*.js"],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

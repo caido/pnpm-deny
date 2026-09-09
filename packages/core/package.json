@@ -1,0 +1,42 @@
+{
+  "name": "@pnpm-deny/core",
+  "version": "0.1.0",
+  "description": "Core contracts and graph adapters for pnpm-deny",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@pnpm/deps.path": "1101.0.1",
+    "@pnpm/find-workspace-dir": "1000.1.5",
+    "@pnpm/lockfile.fs": "1100.2.5",
+    "@pnpm/lockfile.types": "1100.1.0",
+    "@pnpm/lockfile.utils": "1102.1.0",
+    "@pnpm/logger": "1100.0.0",
+    "@pnpm/types": "1102.1.0",
+    "@pnpm/workspace.projects-filter": "1100.0.40",
+    "@pnpm/workspace.projects-reader": "1101.0.25",
+    "@pnpm/workspace.workspace-manifest-reader": "1100.1.8",
+    "semver": "7.7.2",
+    "yaml": "2.8.1",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/semver": "7.7.0"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

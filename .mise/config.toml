@@ -8,3 +8,47 @@ pnpm = "11.25.0"
 
 [settings]
 lockfile = true
+
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+[tasks.build]
+description = "Compile all workspace packages to dist/"
+run = "tsc -b tsconfig.build.json --pretty"
+
+[tasks.typecheck]
+description = "Typecheck all workspace packages"
+run = "tsc -b tsconfig.build.json --pretty --noEmit"
+
+[tasks."typecheck:prod"]
+description = "Typecheck all workspace packages"
+run = "tsc -b tsconfig.build.json --pretty --noEmit"
+
+[tasks.test]
+description = "Run all tests"
+run = "vitest run"
+
+[tasks."test:file"]
+description = "Run tests for a file or pattern"
+run = "vitest run {{arg(name='')}}"
+
+[tasks.knip]
+description = "Find unused files, dependencies, and exports"
+run = "knip"
+
+[tasks.lint]
+description = "Lint the repository"
+run = "eslint ."
+
+[tasks."lint:prod"]
+description = "Lint the repository with zero warnings"
+run = "eslint . --max-warnings=0"
+
+[tasks."lint:file"]
+description = "Lint a specific file"
+run = "eslint {{arg(name='')}}"
+
+[tasks.deny]
+description = "Run the local deny CLI (builds first). Extra args after -- go to deny."
+depends = ["build"]
+run = "node packages/cli/bin/deny.js"
