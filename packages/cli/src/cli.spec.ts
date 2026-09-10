@@ -53,5 +53,18 @@ describe("runCli", () => {
     const code = await runCli(["help"], { stdout, stderr });
     expect(code).toBe(0);
     expect(stdout.toString()).toContain("pnpm deny check");
+    expect(stdout.toString()).toContain("--color WHEN");
+    expect(stdout.toString()).toContain("auto (default)");
+  });
+
+  it("rejects invalid --color values", async () => {
+    const stdout = new MemoryStream();
+    const stderr = new MemoryStream();
+    const code = await runCli(["check", "--color", "rainbow"], {
+      stdout,
+      stderr,
+    });
+    expect(code).toBe(1);
+    expect(stderr.toString()).toMatch(/Invalid --color value 'rainbow'/);
   });
 });

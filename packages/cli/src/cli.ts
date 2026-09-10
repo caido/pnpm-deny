@@ -4,18 +4,22 @@ import { parseArgs } from "node:util";
 import {
   type CheckName,
   type CheckResult,
+  type ColorMode,
   createFilesystemStoreService,
   createRegistryMetadataService,
   defaultConfigPath,
   emptyOverrides,
   findingToJson,
   findWorkspaceDir,
+  formatCheckSummary,
   formatFindingHuman,
   isAbsent,
   type LintOverrides,
   loadDenyConfig,
   loadDependencyGraph,
+  parseColorMode,
   type PolicyCheck,
+  resolveColor,
   runChecks,
   statsToExitCode,
   toSarif,
@@ -115,6 +119,7 @@ async function runCheck(
     context.graph,
     stringOption(values.format, "human"),
     io,
+    parseColorMode(typeof values.color === "string" ? values.color : undefined),
   );
   return statsToExitCode(results);
 }
@@ -212,14 +217,21 @@ function addAll(target: Set<string>, value: unknown): void {
 
 function printResults(
   results: CheckResult[],
-  graph: { packages: Map<string, { artifact: { name: string } }> },
+  graph: {
+    packages: Map<string, { artifact: { name: string; version: string } }>;
+  },
   format: string,
   io: { stdout: NodeJS.WritableStream; stderr: NodeJS.WritableStream },
+  colorMode: ColorMode,
 ): void {
-  const names = new Map<string, string>();
+  const packages = new Map<string, { name: string; version: string }>();
   for (const [id, pkg] of graph.packages) {
-    names.set(id, pkg.artifact.name);
+    packages.set(id, {
+      name: pkg.artifact.name,
+      version: pkg.artifact.version,
+    });
   }
+  // --color only affects human-formatted output; JSON/SARIF ignore it.
   if (format === "json") {
     for (const result of results) {
       for (const finding of result.findings) {
@@ -235,17 +247,25 @@ function printResults(
     io.stdout.write(`${JSON.stringify(toSarif(results), undefined, 2)}\n`);
     return;
   }
+  const colorDiagnostics = resolveColor(
+    colorMode,
+    io.stderr as { isTTY?: boolean },
+  );
+  const colorSummary = resolveColor(
+    colorMode,
+    io.stdout as { isTTY?: boolean },
+  );
   for (const result of results) {
     for (const finding of result.findings) {
       if (finding.level === "allow") {
         continue;
       }
-      io.stderr.write(`${formatFindingHuman(finding, names)}\n`);
+      io.stderr.write(
+        `${formatFindingHuman(finding, packages, { color: colorDiagnostics })}\n\n`,
+      );
     }
-    io.stdout.write(
-      `${result.check}: ${result.stats.errors} errors, ${result.stats.warnings} warnings\n`,
-    );
   }
+  io.stdout.write(`${formatCheckSummary(results, { color: colorSummary })}\n`);
 }
 
 function renderList(
@@ -316,6 +336,13 @@ Options:
   --filter SELECTOR
   --format human|json|sarif
   --layout license|package
+  --color WHEN
+      Whether coloring is applied to human-formatted output; using it on
+      JSON output has no effect.
+      Possible values:
+        auto (default)  Coloring is applied if the output stream is a TTY
+        always          Coloring is always applied
+        never           No coloring is applied for any output
   -A, --allow CODE
   -W, --warn CODE
   -D, --deny CODE

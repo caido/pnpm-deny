@@ -203,4 +203,54 @@ describe("licenses check", () => {
       result.findings.filter((finding) => finding.code === "unlicensed"),
     ).toEqual([]);
   });
+
+  it("rejects licenses outside the allow list", async () => {
+    const root = instance({
+      id: "workspace:.",
+      isWorkspace: true,
+      artifact: {
+        name: "root",
+        version: "1.0.0",
+        source: { kind: "workspace" },
+      },
+      license: "MIT",
+    });
+    const dep = instance({
+      id: "zlibby@1.0.0",
+      artifact: {
+        name: "zlibby",
+        version: "1.0.0",
+        source: { kind: "registry" },
+      },
+      license: "Zlib",
+    });
+    const result = await createLicensesCheck().run(
+      context(
+        graphOf(
+          [root, dep],
+          [
+            {
+              parentId: root.id,
+              childId: dep.id,
+              alias: "zlibby",
+              field: "dependencies",
+              optional: false,
+            },
+          ],
+        ),
+        ["MIT"],
+        {
+          getPackageMetadata: () =>
+            Promise.resolve({
+              name: "zlibby",
+              version: "1.0.0",
+              license: "Zlib",
+            }),
+        },
+      ),
+    );
+    const finding = result.findings.find((entry) => entry.code === "rejected");
+    expect(finding?.labels?.expression).toBe("Zlib");
+    expect(finding?.message).toBe("failed to satisfy license requirements");
+  });
 });

@@ -79,11 +79,15 @@ async function evaluateLicenses(
         check: "licenses",
         code: "unlicensed",
         level: "deny",
-        message: `Package ${pkg.artifact.name}@${pkg.artifact.version} has no declared SPDX license`,
+        message: "failed to satisfy license requirements",
         packageId: pkg.id,
         packageName: pkg.artifact.name,
         packageVersion: pkg.artifact.version,
         inclusionPaths: getInclusionPaths(context.graph, pkg.id),
+        labels: {
+          expression: "",
+          reason: "a valid SPDX license expression could not be retrieved",
+        },
       });
       continue;
     }
@@ -104,11 +108,16 @@ async function evaluateLicenses(
         check: "licenses",
         code: "unlicensed",
         level: "deny",
-        message: `Package ${pkg.artifact.name}@${pkg.artifact.version} declares an invalid SPDX expression '${expression}'`,
+        message: "failed to satisfy license requirements",
         packageId: pkg.id,
         packageName: pkg.artifact.name,
         packageVersion: pkg.artifact.version,
         inclusionPaths: getInclusionPaths(context.graph, pkg.id),
+        labels: {
+          expression,
+          reason: "declared license is not a valid SPDX expression",
+          licenses: expression,
+        },
       });
       continue;
     }
@@ -122,13 +131,18 @@ async function evaluateLicenses(
     if (!expressionAllowed(expression, allow)) {
       findings.push({
         check: "licenses",
-        code: "license-not-allowed",
+        code: "rejected",
         level: "deny",
-        message: `License '${expression}' of ${pkg.artifact.name}@${pkg.artifact.version} is not allowed`,
+        message: "failed to satisfy license requirements",
         packageId: pkg.id,
         packageName: pkg.artifact.name,
         packageVersion: pkg.artifact.version,
         inclusionPaths: getInclusionPaths(context.graph, pkg.id),
+        labels: {
+          expression,
+          reason: "license is not explicitly allowed",
+          licenses: extractLicenseIds(expression).join(", "),
+        },
       });
     }
   }

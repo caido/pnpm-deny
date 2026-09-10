@@ -98,10 +98,18 @@ export {
   aggregateStats,
   emptyCheckResult,
   findingToJson,
+  formatCheckSummary,
   formatFindingHuman,
   formatInclusionPath,
+  formatInclusionTree,
   statsToExitCode,
   toSarif,
 } from "./diagnostics.js";
+
+export type { FormatHumanOptions, GraphPackageLabel } from "./diagnostics.js";
+
+export { createStyle, parseColorMode, resolveColor } from "./style.js";
+
+export type { ColorMode, Style } from "./style.js";
 
 export { runChecks } from "./run-checks.js";

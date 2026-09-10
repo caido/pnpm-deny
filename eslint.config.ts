@@ -6,6 +6,16 @@ export default [
     vue: false,
   }),
   {
-    ignores: ["**/bin/**", "fixtures/**"],
+    ignores: [
+      "**/bin/**",
+      "fixtures/**",
+      "dist/**",
+      "**/dist/**",
+      ".agents/**",
+      ".claude/**",
+      ".cursor/**",
+      "coverage/**",
+      ".gh-workflow-logs/**",
+    ],
   },
 ];

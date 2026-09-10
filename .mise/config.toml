@@ -14,7 +14,7 @@ _.path = ["{{config_root}}/node_modules/.bin"]
 
 [tasks.build]
 description = "Compile all workspace packages to dist/"
-run = "tsc -b tsconfig.build.json --pretty"
+run = "tsc -b tsconfig.build.json --pretty --force"
 
 [tasks.typecheck]
 description = "Typecheck all workspace packages"
