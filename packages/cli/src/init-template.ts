@@ -21,7 +21,15 @@ licenses:
   unused-allowed-license: warn
   unused-license-exception: warn
   exceptions: []
-  # clarifications must bind an SPDX expression to integrity or commit.
+  # Override a package's license when the manifest is missing/wrong.
+  # Must bind the expression to integrity (registry) or commit (git), e.g.:
+  #   clarify:
+  #     - package: ring@0.16.20
+  #       expression: ISC AND MIT AND OpenSSL
+  #       integrity: sha512-abc123...
+  #     - package: some-git-dep@1.0.0
+  #       expression: MIT
+  #       commit: a1b2c3d4e5f6...
   clarify: []
   private:
     # If true, skip license checks for Workspace Packages with "private": true.

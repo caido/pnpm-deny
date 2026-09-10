@@ -88,13 +88,18 @@ export {
   sourceKey,
 } from "./package-spec.js";
 
-export { createRegistryMetadataService } from "./metadata.js";
+export {
+  createRegistryMetadataService,
+  licenseFromPackumentVersion,
+} from "./metadata.js";
 
 export type { RegistryMetadataServiceOptions } from "./metadata.js";
 
 export { createFilesystemStoreService, sha256File } from "./store.js";
 
 export type { FilesystemStoreServiceOptions } from "./store.js";
+
+export { readInstalledManifest } from "./installed-manifest.js";
 
 export {
   aggregateStats,

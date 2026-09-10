@@ -6,10 +6,12 @@ import {
   getInclusionPaths,
   isAbsent,
   isPresent,
+  licenseFromPackumentVersion,
   matchesIgnoreSource,
   matchesInstance,
   type PolicyCheck,
   prodReachableIds,
+  readInstalledManifest,
   type ResolvedInstance,
   statsFromFindings,
 } from "@pnpm-deny/core";
@@ -218,11 +220,19 @@ async function resolveExpression(
   }
 
   if (isPresent(pkg.license)) {
-    return parseLicenseFromManifest({ license: pkg.license }) ?? pkg.license;
+    return normalizeDeclaredLicense(pkg.license);
+  }
+
+  const installed = readInstalledManifest(context.graph.workspaceDir, pkg);
+  if (isPresent(installed)) {
+    const fromInstalled = licenseFromPackumentVersion(installed);
+    if (isPresent(fromInstalled)) {
+      return normalizeDeclaredLicense(fromInstalled);
+    }
   }
 
   if (pkg.isWorkspace || pkg.artifact.source.kind !== "registry") {
-    return parseLicenseFromManifest({ license: pkg.license });
+    return undefined;
   }
 
   const meta = await context.metadata.getPackageMetadata(
@@ -233,7 +243,11 @@ async function resolveExpression(
   if (isAbsent(meta) || isAbsent(meta.license)) {
     return undefined;
   }
-  return parseLicenseFromManifest({ license: meta.license }) ?? meta.license;
+  return normalizeDeclaredLicense(meta.license);
+}
+
+function normalizeDeclaredLicense(license: string): string | undefined {
+  return parseLicenseFromManifest({ license }) ?? license;
 }
 
 function isValidSpdx(expression: string): boolean {

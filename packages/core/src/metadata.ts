@@ -5,12 +5,24 @@ import { normalizeRegistryUrl } from "./package-spec.js";
 import type { MetadataService, PackageMetadata } from "./types.js";
 import { DEFAULT_NPM_REGISTRY } from "./types.js";
 
+const licenseObjectSchema = z
+  .object({
+    type: z.string().optional(),
+    name: z.string().optional(),
+    url: z.string().optional(),
+  })
+  .passthrough();
+
 const packumentVersionSchema = z
   .object({
     name: z.string().optional(),
     version: z.string(),
     license: z
-      .union([z.string(), z.record(z.string(), z.unknown())])
+      .union([z.string(), licenseObjectSchema, z.array(licenseObjectSchema)])
+      .optional(),
+    // Legacy npm field used by packages like config-chain@<1.1.13
+    licenses: z
+      .union([z.string(), licenseObjectSchema, z.array(licenseObjectSchema)])
       .optional(),
     deprecated: z.string().optional(),
     description: z.string().optional(),
@@ -78,10 +90,7 @@ export function createRegistryMetadataService(
         return unpublished;
       }
 
-      const license =
-        typeof versionMeta.license === "string"
-          ? versionMeta.license
-          : undefined;
+      const license = licenseFromPackumentVersion(versionMeta);
       const repository =
         typeof versionMeta.repository === "string"
           ? versionMeta.repository
@@ -137,4 +146,53 @@ export function createRegistryMetadataService(
       return undefined;
     }
   }
+}
+
+/**
+ * Normalize npm license / licenses fields to an SPDX-ish string.
+ * Handles legacy shapes used by packages like config-chain:
+ * `{ type: "MIT", url }` and `licenses: [{ type: "MIT" }]`.
+ */
+export function licenseFromPackumentVersion(versionMeta: {
+  license?: unknown;
+  licenses?: unknown;
+}): string | undefined {
+  const fromLicense = normalizeLicenseField(versionMeta.license);
+  if (isPresent(fromLicense)) {
+    return fromLicense;
+  }
+  return normalizeLicenseField(versionMeta.licenses);
+}
+
+function normalizeLicenseField(value: unknown): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(value)) {
+    const parts: string[] = [];
+    for (const entry of value) {
+      const normalized = normalizeLicenseField(entry);
+      if (isPresent(normalized)) {
+        parts.push(normalized);
+      }
+    }
+    if (parts.length === 0) {
+      return undefined;
+    }
+    return parts.join(" OR ");
+  }
+  if (typeof value === "object") {
+    const record = value as { type?: unknown; name?: unknown };
+    if (typeof record.type === "string" && record.type.trim().length > 0) {
+      return record.type.trim();
+    }
+    if (typeof record.name === "string" && record.name.trim().length > 0) {
+      return record.name.trim();
+    }
+  }
+  return undefined;
 }
