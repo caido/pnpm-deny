@@ -232,7 +232,6 @@ export interface LicensesConfig {
   }>;
   private: {
     ignore: boolean;
-    registries: string[];
     ignoreSources: string[];
   };
   unusedAllowedLicense: LintLevel;

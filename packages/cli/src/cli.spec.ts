@@ -55,6 +55,8 @@ describe("runCli", () => {
     expect(stdout.toString()).toContain("pnpm deny check");
     expect(stdout.toString()).toContain("--color WHEN");
     expect(stdout.toString()).toContain("auto (default)");
+    expect(stdout.toString()).toContain("--hide-inclusion-graph");
+    expect(stdout.toString()).toContain("inverse dependency graph");
   });
 
   it("rejects invalid --color values", async () => {

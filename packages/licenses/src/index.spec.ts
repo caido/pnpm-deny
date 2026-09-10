@@ -253,4 +253,55 @@ describe("licenses check", () => {
     expect(finding?.labels?.expression).toBe("Zlib");
     expect(finding?.message).toBe("failed to satisfy license requirements");
   });
+
+  it("skips packages from ignore-sources registries", async () => {
+    const root = instance({
+      id: "workspace:.",
+      isWorkspace: true,
+      artifact: {
+        name: "root",
+        version: "1.0.0",
+        source: { kind: "workspace" },
+      },
+      license: "MIT",
+    });
+    const dep = instance({
+      id: "@caido/sdk@1.0.0",
+      artifact: {
+        name: "@caido/sdk",
+        version: "1.0.0",
+        source: {
+          kind: "registry",
+          locator: "https://npm.pkg.github.com/",
+          registryName: "caido",
+        },
+      },
+      license: "UNLICENSED",
+    });
+    const ctx = context(
+      graphOf(
+        [root, dep],
+        [
+          {
+            parentId: root.id,
+            childId: dep.id,
+            alias: "@caido/sdk",
+            field: "dependencies",
+            optional: false,
+          },
+        ],
+      ),
+      ["MIT"],
+      {
+        getPackageMetadata: () => Promise.resolve(undefined),
+      },
+    );
+    ctx.config.licenses.private.ignoreSources = [
+      "https://npm.pkg.github.com",
+    ];
+    const result = await createLicensesCheck().run(ctx);
+    expect(
+      result.findings.filter((finding) => finding.packageName === "@caido/sdk"),
+    ).toEqual([]);
+  });
 });

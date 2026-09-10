@@ -572,7 +572,8 @@ function isLikelyRegistryTarball(tarball: string): boolean {
   return (
     tarball.includes("/-/") ||
     tarball.includes("registry.npmjs.org") ||
-    tarball.includes("registry.npmjs.com")
+    tarball.includes("registry.npmjs.com") ||
+    tarball.includes("npm.pkg.github.com")
   );
 }
 

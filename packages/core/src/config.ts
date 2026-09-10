@@ -236,13 +236,11 @@ const licensesSchema = z
     private: z
       .object({
         ignore: z.boolean().default(false),
-        registries: z.array(z.string()).default([]),
         "ignore-sources": z.array(z.string()).default([]),
       })
       .strict()
       .default({
         ignore: false,
-        registries: [],
         "ignore-sources": [],
       }),
     "unused-allowed-license": lintLevelSchema.default("warn"),
@@ -256,7 +254,6 @@ const licensesSchema = z
     clarify: [],
     private: {
       ignore: false,
-      registries: [],
       "ignore-sources": [],
     },
     "unused-allowed-license": "warn",
@@ -501,7 +498,6 @@ function mapLicenses(parsed: DenyConfigParsed["licenses"]): LicensesConfig {
     })),
     private: {
       ignore: parsed.private.ignore,
-      registries: parsed.private.registries,
       ignoreSources: parsed.private["ignore-sources"],
     },
     unusedAllowedLicense: parsed["unused-allowed-license"],

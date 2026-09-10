@@ -56,6 +56,7 @@ export async function runCli(
       deny: { type: "string", short: "D", multiple: true },
       offline: { type: "boolean" },
       color: { type: "string" },
+      "hide-inclusion-graph": { type: "boolean" },
     },
   });
 
@@ -102,6 +103,9 @@ async function runCheck(
   values: Record<string, unknown>,
   io: { stdout: NodeJS.WritableStream; stderr: NodeJS.WritableStream },
 ): Promise<number> {
+  const colorMode = parseColorMode(
+    typeof values.color === "string" ? values.color : undefined,
+  );
   const checks = resolveChecks(selected);
   const context = await createContext(values);
   const results = await runChecks(
@@ -119,7 +123,8 @@ async function runCheck(
     context.graph,
     stringOption(values.format, "human"),
     io,
-    parseColorMode(typeof values.color === "string" ? values.color : undefined),
+    colorMode,
+    values["hide-inclusion-graph"] === true,
   );
   return statsToExitCode(results);
 }
@@ -223,6 +228,7 @@ function printResults(
   format: string,
   io: { stdout: NodeJS.WritableStream; stderr: NodeJS.WritableStream },
   colorMode: ColorMode,
+  hideInclusionGraph: boolean,
 ): void {
   const packages = new Map<string, { name: string; version: string }>();
   for (const [id, pkg] of graph.packages) {
@@ -261,7 +267,10 @@ function printResults(
         continue;
       }
       io.stderr.write(
-        `${formatFindingHuman(finding, packages, { color: colorDiagnostics })}\n\n`,
+        `${formatFindingHuman(finding, packages, {
+          color: colorDiagnostics,
+          hideInclusionGraph,
+        })}\n\n`,
       );
     }
   }
@@ -347,5 +356,10 @@ Options:
   -W, --warn CODE
   -D, --deny CODE
   --offline
+  --hide-inclusion-graph
+      Hides the inclusion graph when printing out info for a package.
+      By default, if a diagnostic message pertains to a specific package,
+      pnpm-deny appends an inverse dependency graph to show how that
+      package was pulled into your project.
 `;
 }

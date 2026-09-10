@@ -6,8 +6,8 @@ import {
   getInclusionPaths,
   isAbsent,
   isPresent,
+  matchesIgnoreSource,
   matchesInstance,
-  normalizeLocator,
   type PolicyCheck,
   prodReachableIds,
   type ResolvedInstance,
@@ -189,12 +189,13 @@ function shouldIgnoreSource(
   pkg: ResolvedInstance,
   context: CheckContext,
 ): boolean {
-  const locators =
-    context.config.licenses.private.ignoreSources.map(normalizeLocator);
-  if (locators.length === 0 || isAbsent(pkg.artifact.source.locator)) {
+  const entries = context.config.licenses.private.ignoreSources;
+  if (entries.length === 0) {
     return false;
   }
-  return locators.includes(normalizeLocator(pkg.artifact.source.locator));
+  return entries.some((entry) =>
+    matchesIgnoreSource(entry, pkg.artifact.source),
+  );
 }
 
 async function resolveExpression(

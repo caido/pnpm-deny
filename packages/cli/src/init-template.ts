@@ -24,7 +24,11 @@ licenses:
   # clarifications must bind an SPDX expression to integrity or commit.
   clarify: []
   private:
+    # If true, skip license checks for Workspace Packages with "private": true.
     ignore: false
-    registries: []
+    # Skip license checks for External Packages from these sources.
+    # Match the resolved registry URL (host), e.g.:
+    #   ignore-sources:
+    #     - https://npm.pkg.github.com
     ignore-sources: []
 `;

@@ -57,7 +57,6 @@ function mergeExceptions(config: DenyConfig, raw: unknown, path: string): void {
         })),
         private: {
           ignore: config.licenses.private.ignore,
-          registries: config.licenses.private.registries,
           "ignore-sources": config.licenses.private.ignoreSources,
         },
         "unused-allowed-license": config.licenses.unusedAllowedLicense,

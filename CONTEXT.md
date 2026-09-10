@@ -45,5 +45,5 @@ The severity assigned to a Finding: allow, warn, or deny.
 _Avoid_: Severity, priority
 
 **Private Package**:
-A Workspace Package whose `package.json` declares `"private": true`, or that publishes only to configured private registries.
+A Workspace Package whose `package.json` declares `"private": true`.
 _Avoid_: Unpublished package (unpublished is a registry-status Finding for External Packages)

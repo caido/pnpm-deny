@@ -146,6 +146,48 @@ describe("formatFindingHuman", () => {
     expect(rendered).toContain("\u001B[36m");
     expect(rendered).toContain("\u001B[0m");
   });
+
+  it("hides the inclusion graph when requested", () => {
+    const finding: Finding = {
+      check: "licenses",
+      code: "rejected",
+      level: "deny",
+      message: "failed to satisfy license requirements",
+      packageId: "foldhash@0.1.5",
+      packageName: "foldhash",
+      packageVersion: "0.1.5",
+      labels: {
+        expression: "Zlib",
+        reason: "license is not explicitly allowed",
+        licenses: "Zlib",
+      },
+      inclusionPaths: [
+        {
+          rootId: "workspace:app",
+          hops: [
+            {
+              alias: "actix-http",
+              packageId: "actix-http@3.12.1",
+              field: "dependencies",
+            },
+            {
+              alias: "foldhash",
+              packageId: "foldhash@0.1.5",
+              field: "dependencies",
+            },
+          ],
+        },
+      ],
+    };
+
+    const rendered = formatFindingHuman(finding, packages, {
+      color: false,
+      hideInclusionGraph: true,
+    });
+    expect(rendered).toContain("   ├ Zlib");
+    expect(rendered).not.toContain("actix-http@3.12.1");
+    expect(rendered).not.toContain("└──");
+  });
 });
 
 describe("formatCheckSummary", () => {

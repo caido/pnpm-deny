@@ -77,11 +77,13 @@ export {
 
 export {
   artifactKey,
+  matchesIgnoreSource,
   matchesInstance,
   matchesPackageSpec,
   normalizeLocator,
   normalizeRegistryUrl,
   packageSpecFromUnknown,
+  parseIgnoreSource,
   parsePackageSpec,
   sourceKey,
 } from "./package-spec.js";

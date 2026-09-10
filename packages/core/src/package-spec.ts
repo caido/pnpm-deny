@@ -137,3 +137,68 @@ export function normalizeRegistryUrl(url: string): string {
   }
   return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
 }
+
+/**
+ * Parse an ignore-sources entry.
+ * Accepts registry URLs (preferred) or bare registry names.
+ */
+export function parseIgnoreSource(entry: string): {
+  names: string[];
+  locators: string[];
+} {
+  const trimmed = entry.trim();
+  if (/^https?:\/\//i.test(trimmed) || trimmed.includes("://")) {
+    return { names: [], locators: [normalizeLocator(trimmed)] };
+  }
+  return {
+    names: [trimmed],
+    locators: [normalizeLocator(trimmed)],
+  };
+}
+
+export function matchesIgnoreSource(
+  entry: string,
+  source: ArtifactIdentity["source"],
+): boolean {
+  const parsed = parseIgnoreSource(entry);
+  if (
+    isPresent(source.registryName) &&
+    parsed.names.some(
+      (name) => name.toLowerCase() === source.registryName!.toLowerCase(),
+    )
+  ) {
+    return true;
+  }
+  if (isAbsent(source.locator)) {
+    return false;
+  }
+  return parsed.locators.some((ignoreLocator) =>
+    locatorMatchesIgnore(source.locator!, ignoreLocator),
+  );
+}
+
+function locatorMatchesIgnore(
+  packageLocator: string,
+  ignoreLocator: string,
+): boolean {
+  const pkg = normalizeLocator(packageLocator);
+  const ign = normalizeLocator(ignoreLocator);
+  if (pkg === ign) {
+    return true;
+  }
+  const pkgHost = registryHost(packageLocator);
+  const ignHost = registryHost(ignoreLocator);
+  if (isPresent(pkgHost) && isPresent(ignHost) && pkgHost === ignHost) {
+    return true;
+  }
+  return pkg.startsWith(`${ign}/`);
+}
+
+function registryHost(value: string): string | undefined {
+  try {
+    const withScheme = /^[a-z]+:\/\//i.test(value) ? value : `https://${value}`;
+    return new URL(withScheme).host.toLowerCase();
+  } catch {
+    return undefined;
+  }
+}
