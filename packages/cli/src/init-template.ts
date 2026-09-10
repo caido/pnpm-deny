@@ -15,11 +15,18 @@ output:
   feature-depth: 1
 
 licenses:
-  # Licenses not listed here are denied.
+  # SPDX license expressions only. Licenses not listed here are denied.
+  #   allow:
+  #     - MIT
+  #     - Apache-2.0
   allow: []
   include-dev: false
   unused-allowed-license: warn
   unused-license-exception: warn
+  # Per-package allow lists (not package names under allow), e.g.:
+  #   exceptions:
+  #     - package: intro.js@*
+  #       allow: [MIT, Apache-2.0]
   exceptions: []
   # Override a package's license when the manifest is missing/wrong.
   # Must bind the expression to integrity (registry) or commit (git), e.g.:

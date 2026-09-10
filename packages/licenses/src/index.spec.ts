@@ -254,6 +254,66 @@ describe("licenses check", () => {
     expect(finding?.message).toBe("failed to satisfy license requirements");
   });
 
+  it("does not reject valid licenses when allow contains an invalid SPDX id", async () => {
+    const root = instance({
+      id: "workspace:.",
+      isWorkspace: true,
+      artifact: {
+        name: "root",
+        version: "1.0.0",
+        source: { kind: "workspace" },
+      },
+      license: "MIT",
+    });
+    const dep = instance({
+      id: "leftpad@1.0.0",
+      artifact: {
+        name: "leftpad",
+        version: "1.0.0",
+        source: { kind: "registry" },
+      },
+      license: "MIT",
+    });
+    const result = await createLicensesCheck().run(
+      context(
+        graphOf(
+          [root, dep],
+          [
+            {
+              parentId: root.id,
+              childId: dep.id,
+              alias: "leftpad",
+              field: "dependencies",
+              optional: false,
+            },
+          ],
+        ),
+        ["MIT", "intro.js"],
+        {
+          getPackageMetadata: () =>
+            Promise.resolve({
+              name: "leftpad",
+              version: "1.0.0",
+              license: "MIT",
+            }),
+        },
+      ),
+    );
+    expect(
+      result.findings.filter(
+        (finding) =>
+          finding.code === "rejected" && finding.packageName === "leftpad",
+      ),
+    ).toEqual([]);
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.code === "invalid-allowed-license" &&
+          finding.message.includes("intro.js"),
+      ),
+    ).toBe(true);
+  });
+
   it("skips packages from ignore-sources registries", async () => {
     const root = instance({
       id: "workspace:.",
@@ -296,9 +356,7 @@ describe("licenses check", () => {
         getPackageMetadata: () => Promise.resolve(undefined),
       },
     );
-    ctx.config.licenses.private.ignoreSources = [
-      "https://npm.pkg.github.com",
-    ];
+    ctx.config.licenses.private.ignoreSources = ["https://npm.pkg.github.com"];
     const result = await createLicensesCheck().run(ctx);
     expect(
       result.findings.filter((finding) => finding.packageName === "@caido/sdk"),

@@ -100,7 +100,7 @@ async function evaluateLicenses(
     const allow = [
       ...config.allow,
       ...(exceptionIndex >= 0 ? config.exceptions[exceptionIndex]!.allow : []),
-    ];
+    ].filter((entry) => isValidSpdx(entry));
     if (exceptionIndex >= 0) {
       usedExceptions.add(exceptionIndex);
     }
@@ -150,6 +150,16 @@ async function evaluateLicenses(
   }
 
   for (const allowed of config.allow) {
+    if (!isValidSpdx(allowed)) {
+      findings.push({
+        check: "licenses",
+        code: "invalid-allowed-license",
+        level: "deny",
+        message: `Allowed license '${allowed}' is not a valid SPDX expression`,
+        help: "licenses.allow must list SPDX license expressions. To allow a specific package, use licenses.exceptions.",
+      });
+      continue;
+    }
     if (!usedAllow.has(allowed)) {
       findings.push({
         check: "licenses",
